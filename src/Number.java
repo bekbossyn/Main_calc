@@ -1,37 +1,124 @@
+import java.nio.file.FileAlreadyExistsException;
+import java.security.cert.TrustAnchor;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class Number {
 
-    public int intValue;
-    public String strValue;
-    public int roman;
+    public static String INVALID_NUMBER = "Invalid number";
 
-    Number(String strValue){
-        this.strValue = strValue;
-        this.roman = Roman(strValue);
-        this.intValue = toDecimal(strValue, this.roman);
+    public static String DECIMAL = "Decimal";
+    public static String ROMAN = "Roman";
+
+    public static String[] romanLiterals = { "M", "D", "C", "L", "X", "V", "I" };
+
+    public boolean isValid;
+    public String stringValue;
+    public int decimalValue;
+    public String romanValue;
+    public String valueType;
+
+    Number(String stringValue) {
+        this.isValid = isValidNumber(stringValue);
+        this.valueType = ValueType(stringValue);
+        this.stringValue = stringValue;
+        this.decimalValue = toDecimal(stringValue);
+        this.romanValue = ToRoman(stringValue);
     }
 
-    Number (int intValue){
-        this.intValue = intValue;
-        this.strValue = ToRoman(intValue);
-        this.roman = 0; // already declared as decimal number
+    Number (int decimalValue) {
+        this.stringValue = String.valueOf(decimalValue);
+        this.isValid = isValidNumber(this.stringValue);
+        this.valueType = ValueType(this.stringValue);
+        this.decimalValue = decimalValue;
+        this.romanValue = ToRoman(this.stringValue);
     }
 
-    public int toDecimal(String strValue, int roman) {
+    public String ValueType(String stringValue) {
+
+        boolean roman = false;
+        boolean decimalValue = false;
+
+        if (isValidNumber(stringValue)) {
+
+            // negative number
+            if (stringValue.charAt(0) == '-') {
+                stringValue = stringValue.substring(1);
+            }
+
+            if (isDecimalDigit(stringValue.charAt(0))) {
+                return DECIMAL;
+            } else if (isRomanDigit(stringValue.charAt(0))) {
+                return ROMAN;
+            }
+        }
+        return INVALID_NUMBER;
+    }
+
+    public static boolean isValidNumber(String stringValue){
+
+        // the number is Valid
+
+        // empty text
+        if (stringValue.length() == 0) {
+            return false;
+        }
+
+//        int sign = 1;
+        // negative number
+        if (stringValue.charAt(0) == '-') {
+//            sign = -1;
+            stringValue = stringValue.substring(1);
+        }
+        boolean decimalDigit = false;
+        boolean romanDigit = false;
+        boolean error = false;
+        for (int i = 0; i < stringValue.length(); i++) {
+            if (isDecimalDigit(stringValue.charAt(i))) {
+                decimalDigit = true;
+            } else if (isRomanDigit(stringValue.charAt(i))) {
+                romanDigit = true;
+            } else {
+                error = true;
+            }
+        }
+        return !error && ((decimalDigit && !romanDigit) || (!decimalDigit && romanDigit));
+    }
+
+    private static boolean isRomanDigit(char Char) {
+        boolean Roman = false;
+        for (String romanLiteral : romanLiterals) {
+            if (romanLiteral.charAt(0) == Char) {
+                Roman = true;
+                break;
+            }
+        }
+        return Roman;
+    }
+
+    private static boolean isDecimalDigit(char Char) {
+        return Char >= '0' && Char <= '9';
+    }
+
+    public int toDecimal(String stringValue) {
+
+        if (!isValidNumber(stringValue)) {
+            return 0;
+        }
+
         Map<Character, Integer> values = new LinkedHashMap<>();
 
-        if (roman == 0) {
-
-            return Integer.parseInt(strValue);
+        // decimal number
+        if (ValueType(stringValue).equals(DECIMAL)) {
+            return Integer.parseInt(stringValue);
         }
 
         int sign = 1;
+
         // negative number
-        if (strValue.charAt(0) == '-'){
-            sign=-1;
-            strValue=strValue.substring(1);
+        if (stringValue.charAt(0) == '-'){
+            sign = -1;
+            stringValue = stringValue.substring(1);
         }
 
         values.put('I', 1);
@@ -39,32 +126,49 @@ public class Number {
         values.put('X', 10);
         values.put('L', 50);
         values.put('C', 100);
+        values.put('D', 500);
+        values.put('M', 1000);
 
         int number = 0;
-        for (int i = 0; i < strValue.length(); i++) {
-            if (i+1 == strValue.length() || values.get(strValue.charAt(i)) >= values.get(strValue.charAt(i + 1))) {
-                number += values.get(strValue.charAt(i));
+        for (int i = 0; i < stringValue.length(); i++) {
+            if (i+1 == stringValue.length() || values.get(stringValue.charAt(i)) >= values.get(stringValue.charAt(i + 1))) {
+                number += values.get(stringValue.charAt(i));
             } else {
-                number -= values.get(strValue.charAt(i));
+                number -= values.get(stringValue.charAt(i));
             }
         }
         return number * sign;
     }
 
-    public String ToRoman(int intValue) {
+    public static String ToRoman(String stringValue) {
+
+        // invalid number
+        if (!isValidNumber(stringValue)) {
+            return INVALID_NUMBER;
+        }
 
         final int[] values = { 1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1 };
         final String[] romanLiterals = { "M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I" };
         StringBuilder s = new StringBuilder();
+        String result = stringValue;
 
+//        int sign = 1;
         // negative number
-        if (intValue < 0){
-            intValue = -intValue;
+        if (stringValue.charAt(0) == '-'){
+            stringValue = stringValue.substring(1);
+//            sign = -1;
             s.append('-');
         }
-        if( intValue == 0){
-            return "";
+
+        int intValue = 0;
+        if (isDecimalDigit(stringValue.charAt(0)) ) {
+            intValue = Integer.parseInt(stringValue);
         }
+
+        if (isRomanDigit(stringValue.charAt(0))) {
+            return result;
+        }
+
         for (int i = 0; i < values.length; i++) {
             while (intValue >= values[i]) {
                 intValue -= values[i];
@@ -72,48 +176,6 @@ public class Number {
             }
         }
         return s.toString();
-    }
-
-    public int Roman(String strValue) {
-        /*
-            0 = Not Roman
-            1 = Roman
-            2 = Error
-         */
-
-        boolean decimal;
-        decimal=false;
-        boolean roman;
-        roman = false;
-        boolean error;
-        error = false;
-
-        //negative number check
-        if (strValue.charAt(0) == '-') {
-            strValue = strValue.substring(1);
-        }
-
-
-        for (int i = 0; i < strValue.length(); i++) {
-            if (strValue.charAt(i) >='0' && strValue.charAt(i) <= '9') {
-                decimal = true;
-            } else if (strValue.charAt(i) == 'I' || strValue.charAt(i) == 'V' || strValue.charAt(i) == 'X' ||
-                    strValue.charAt(i) == 'L' || strValue.charAt(i) == 'C'){
-                roman = true;
-            } else {
-                error = true;
-            }
-        }
-        if (error || (roman && decimal)) {
-            return 2;
-        }
-        if (roman && !decimal) {
-            return 1;
-        }
-        if (decimal && !roman) {
-            return 0;
-        }
-        return 2;
     }
 
 }
