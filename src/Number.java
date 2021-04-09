@@ -1,5 +1,3 @@
-import java.nio.file.FileAlreadyExistsException;
-import java.security.cert.TrustAnchor;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -35,9 +33,6 @@ public class Number {
     }
 
     public String ValueType(String stringValue) {
-
-        boolean roman = false;
-        boolean decimalValue = false;
 
         if (isValidNumber(stringValue)) {
 
