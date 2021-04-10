@@ -47,6 +47,17 @@ public class Calculator {
     }
 
     public String calculate(String text) {
+
+        // remove spaces
+        int length = 0;
+        while (length < text.length()) {
+            if (text.charAt(length) == ' ') {
+                text = text.substring(0, length) + text.substring(length + 1);
+            } else {
+                length += 1;
+            }
+        }
+
         if (!isValidExpression(text)) {
             return INVALID_EXPRESSION;
         }
@@ -159,10 +170,12 @@ public class Calculator {
         }
 
         // divisibility LCD
+        /*
         if (!(lcd(Math.abs(number1.decimalValue), Math.abs(number2.decimalValue)) == Math.abs(number2.decimalValue))) {
             num.valueType = INVALID_EXPRESSION;
             return num;
         }
+         */
 
         int result = number1.decimalValue / number2.decimalValue;
         if (number1.valueType.equals(Number.ROMAN)) {
